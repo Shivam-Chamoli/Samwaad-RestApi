@@ -38,6 +38,6 @@ const postRoute = require(__dirname + "/routes/post");
 app.use("/api/posts", postRoute);
 
 //Listen request
-app.listen("8800", () => {
+app.listen(process.env.PORT || "8800", () => {
   console.log("Server Started Successfully");
 });
