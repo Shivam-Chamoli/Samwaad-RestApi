@@ -1,6 +1,9 @@
 const router = require("express").Router();
-const Users = require(__dirname + "/../models/Users");
+const UsersExport = require(__dirname + "/../models/Users");
+
 const bcrypt = require("bcrypt");
+const userSchema = UsersExport.schema;
+const Users = UsersExport.model;
 
 //get All users
 router.get("/allUsers", (req, res) => {
@@ -133,22 +136,48 @@ router.patch("/:id/unfollow", async (req, res) => {
 });
 
 // get all followers
-router.get("/friends/:userId", async (req, res) => {
+router.get("/:userId/friends", async (req, res) => {
   try {
     const user = await Users.findById(req.params.userId);
+    console.log(user);
     const friends = await Promise.all(
-      user.followings.map((friendId) => {
+      user.following.map((friendId) => {
         return Users.findById(friendId);
       })
     );
     let friendList = [];
-    friends.map((friend) => {
+    console.log(friends);
+    await friends.map((friend) => {
       const { _id, username, profilePicture } = friend;
       friendList.push({ _id, username, profilePicture });
     });
     res.status(200).json(friendList);
   } catch (err) {
     res.status(500).json(err);
+  }
+});
+
+//update users schema
+
+router.post("/update-all-users", async (req, res) => {
+  const updates = req.body;
+  console.log(updates);
+  try {
+    const queryResult = await Users.updateMany(
+      {},
+      { updates },
+      { strict: false },
+      function (err, result) {
+        if (!err) {
+          res.status(200).send(result);
+        } else {
+          res.status(500).send(err);
+        }
+      }
+    );
+    // res.status(200).send(queryResult);
+  } catch (error) {
+    res.status(500).json(error);
   }
 });
 
